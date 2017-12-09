@@ -1,0 +1,57 @@
+DROP TABLE IF EXISTS numbers;
+CREATE TABLE IF NOT EXISTS numbers(
+  hash_number_A INT PRIMARY KEY
+);
+INSERT INTO numbers
+SELECT DISTINCT hash_number_A
+FROM events WHERE hash_number_A <> 0;
+
+DROP TABLE IF EXISTS dates;
+CREATE TABLE IF NOT EXISTS dates(
+  dd DATE PRIMARY KEY
+);
+INSERT INTO dates
+SELECT DISTINCT DATE(event_start_date)
+FROM events
+WHERE DATE(event_start_date) BETWEEN CAST('2017-07-01' AS DATE) AND CAST('2017-07-31' AS DATE);
+
+DROP TABLE IF EXISTS `30days`;
+CREATE TABLE IF NOT EXISTS `30days`(
+  day INT PRIMARY KEY
+);
+INSERT INTO `30days`
+SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29 UNION SELECT 30;
+
+DROP TABLE IF EXISTS current_event;
+CREATE TABLE IF NOT EXISTS current_event(
+  hash_number_A INT,
+  dd DATE,
+  PRIMARY KEY (hash_number_A, dd)
+);
+INSERT INTO current_event
+SELECT hash_number_A, dd
+FROM numbers, dates;
+
+DROP TABLE IF EXISTS factors;
+CREATE TABLE IF NOT EXISTS factors(
+  hash_number_A INT,
+  dd DATE,
+  recency INT,
+  frequency FLOAT,
+  monetary FLOAT
+);
+INSERT INTO factors
+SELECT
+  c.hash_number_A,
+  c.dd AS dd,
+  DATEDIFF(c.dd, MAX(e.event_start_date)) AS recency,
+  COUNT(*) AS frequency,
+  SUM(e.cost) AS monetary
+FROM current_event c INNER JOIN events e ON c.hash_number_A = e.hash_number_A
+WHERE
+  e.hash_number_A = c.hash_number_A AND
+  e.event_start_date < c.dd AND
+  e.event_start_date > DATE_SUB(c.dd, INTERVAL 30 DAY)
+GROUP BY c.hash_number_A, c.dd
+LIMIT 100;
+SELECT * FROM factors;
