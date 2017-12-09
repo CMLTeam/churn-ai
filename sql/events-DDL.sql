@@ -25,3 +25,11 @@ CREATE TABLE events
 	test_flag BOOL NULL,
 	target BOOL NULL
 );
+
+CREATE INDEX IX_events_hash_number_A ON events (hash_number_A);
+CREATE INDEX IX_events_event ON events (event);
+CREATE INDEX IX_events_event_sub ON events (event_sub);
+CREATE INDEX IX_events_network_service_direction ON events (network_service_direction);
+CREATE INDEX IX_events_LAT_LON ON events (LAT, LON);
+CREATE INDEX IX_events_device_type ON events (device_type);
+CREATE INDEX IX_events_phone_price_category ON events (phone_price_category);
