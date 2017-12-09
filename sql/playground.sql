@@ -99,3 +99,28 @@ FROM
   CROSS JOIN `30days` d
   LEFT JOIN events_of_interest i
   ON c.hash_number_A = i.hash_number_A AND DATEDIFF(i.previous_dd, c.dd) = d.day;
+CREATE UNIQUE INDEX ix_hd3 ON target(hash_number_A, dd);
+
+DROP TABLE IF EXISTS dataset;
+CREATE TABLE IF NOT EXISTS dataset(
+  hash_number_A INT,
+  dd DATE,
+  horyzon INT,
+  t BOOLEAN,
+  recency INT,
+  frequency FLOAT,
+  monetary FLOAT
+);
+TRUNCATE dataset;
+
+INSERT INTO dataset
+SELECT
+  t.hash_number_A,
+  t.dd,
+  t.horyzon,
+  t.t,
+  f.recency,
+  f.frequency,
+  f.monetary
+FROM target t INNER JOIN factors f ON t.hash_number_A = f.hash_number_A AND t.dd = f.dd;
+
