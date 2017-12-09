@@ -77,6 +77,25 @@ WHERE
   e.previous_dd < c.dd AND
   e.previous_dd > DATE_SUB(c.dd, INTERVAL 30 DAY)
 GROUP BY c.hash_number_A, c.dd;
+CREATE UNIQUE INDEX ix_hd2 ON factors(hash_number_A, dd);
 
-SELECT * FROM factors
-LIMIT 10000;
+DROP TABLE IF EXISTS target;
+CREATE TABLE IF NOT EXISTS target(
+  hash_number_A INT,
+  dd DATE,
+  horyzon INT,
+  t BOOLEAN
+);
+TRUNCATE target;
+
+INSERT INTO target
+SELECT
+  c.hash_number_A AS hash_number_A,
+  c.dd AS dd,
+  d.day AS horyzon,
+  (CASE WHEN i.hash_number_A IS NOT NULL THEN 1 ELSE 0 END) AS t
+FROM
+  current_event c
+  CROSS JOIN `30days` d
+  LEFT JOIN events_of_interest i
+  ON c.hash_number_A = i.hash_number_A AND DATEDIFF(i.previous_dd, c.dd) = d.day;
