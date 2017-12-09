@@ -12,7 +12,7 @@ IGNORE 1 LINES
 	event,
 	event_sub,
 	network_service_direction,
-	@sdate,
+	@event_start,
 	hash_b_number,
 	number_B_category,
 	cost,
@@ -31,5 +31,7 @@ IGNORE 1 LINES
 	test_flag,
 	target
 )
-SET event_start_date = STR_TO_DATE(@sdate, '%d%b%y:%T');
+SET
+	event_start_date = STR_TO_DATE(@event_start, '%d%b%y:%T')
+;
 
