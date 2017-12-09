@@ -7,3 +7,5 @@ target
 *.zip
 *.gz
 *.pyc
+
+credentials.py
