@@ -49,7 +49,7 @@ TRUNCATE events_of_interest;
 INSERT INTO events_of_interest 
 SELECT DISTINCT hash_number_A, DATE(event_start_date) previous_dd, SUM(cost)
 FROM events e
-WHERE e.event = 'network_ser' AND e.event_sub = 'onnet_voice' AND e.network_service_direction = 'Incoming'
+WHERE e.event = 'network_ser' AND e.event_sub = 'onnet_voice' AND e.network_service_direction = 'Outgoing'
 GROUP BY hash_number_A, DATE(event_start_date);
 
 CREATE UNIQUE INDEX ix_hpd1 ON events_of_interest(hash_number_A, previous_dd);
@@ -69,9 +69,9 @@ SELECT
   c.hash_number_A,
   c.dd AS dd,
   DATEDIFF(c.dd, MAX(e.previous_dd)) AS recency,
-  COUNT(*) AS frequency,
+  SUM(CASE WHEN e.hash_number_A IS NOT NULL THEN 1 ELSE 0 END) AS frequency,
   SUM(e.cost) AS monetary
-FROM current_event c INNER JOIN events_of_interest e ON c.hash_number_A = e.hash_number_A
+FROM current_event c LEFT JOIN events_of_interest e ON c.hash_number_A = e.hash_number_A
 WHERE
   e.hash_number_A = c.hash_number_A AND
   e.previous_dd < c.dd AND
@@ -99,7 +99,8 @@ FROM
   CROSS JOIN `30days` d
   LEFT JOIN events_of_interest i
   ON c.hash_number_A = i.hash_number_A AND DATEDIFF(i.previous_dd, c.dd) = d.day;
-CREATE UNIQUE INDEX ix_hd3 ON target(hash_number_A, dd);
+
+CREATE UNIQUE INDEX ix_hd3 ON target(hash_number_A, dd, horyzon);
 
 DROP TABLE IF EXISTS dataset;
 CREATE TABLE IF NOT EXISTS dataset(
